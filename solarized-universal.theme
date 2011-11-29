@@ -1,70 +1,68 @@
-# irssi theme for the Solarized color palette
-# (Adapted from default theme distributed with irssi 0.8.15 circa 2011-04-25)
-#
-# Adaptation by: Huy Z
-# Source: https://github.com/huyz/irssi-colors-solarized
-#
-
-# When testing changes, the easiest way to reload the theme is with /RELOAD.
-# This reloads the configuration file too, so if you did any changes remember
-# to /SAVE it first. Remember also that /SAVE overwrites the theme file with
-# old data so keep backups :)
-
-# TEMPLATES:
-
-# The real text formats that irssi uses are the ones you can find with
-# /FORMAT command. Back in the old days all the colors and texts were mixed
-# up in those formats, and it was really hard to change the colors since you
-# might have had to change them in tens of different places. So, then came
-# this templating system.
-
-# Now the /FORMATs don't have any colors in them, and they also have very
-# little other styling. Most of the stuff you need to change is in this
-# theme file. If you can't change something here, you can always go back
-# to change the /FORMATs directly, they're also saved in these .theme files.
-
-# So .. the templates. They're those {blahblah} parts you see all over the
-# /FORMATs and here. Their usage is simply {name parameter1 parameter2}.
-# When irssi sees this kind of text, it goes to find "name" from abstracts
-# block below and sets "parameter1" into $0 and "parameter2" into $1 (you
-# can have more parameters of course). Templates can have subtemplates.
-# Here's a small example:
-#   /FORMAT format hello {colorify {underline world}}
-#   abstracts = { colorify = "%G$0-%n"; underline = "%U$0-%U"; }
-# When irssi expands the templates in "format", the final string would be:
-#   hello %G%Uworld%U%n
-# ie. underlined bright green "world" text.
-# and why "$0-", why not "$0"? $0 would only mean the first parameter,
-# $0- means all the parameters. With {underline hello world} you'd really
-# want to underline both of the words, not just the hello (and world would
-# actually be removed entirely).
-
-# COLORS:
-
-# You can find definitions for the color format codes in docs/formats.txt.
-
-# There's one difference here though. %n format. Normally it means the
-# default color of the terminal (white mostly), but here it means the
-# "reset color back to the one it was in higher template". For example
-# if there was /FORMAT test %g{foo}bar, and foo = "%Y$0%n", irssi would
-# print yellow "foo" (as set with %Y) but "bar" would be green, which was
-# set at the beginning before the {foo} template. If there wasn't the %g
-# at start, the normal behaviour of %n would occur. If you _really_ want
-# to use the terminal's default color, use %N.
-
-#############################################################################
-
-# default foreground color (%N) - -1 is the "default terminal color"
 default_color = "-1";
-
-# print timestamp/servertag at the end of line, not at beginning
 info_eol = "false";
 
 # these characters are automatically replaced with specified color
-# (dark grey by default)
-replaces = { "[]=" = "%_$*%_"; };
+#replaces = { "[]=" = "%_$*%_"; };
 
 abstracts = {
+  # Text
+  # ----
+ #text =    "%N$0$1-";
+  text =    "$0$1-";
+  message = "{text {S}{qualified $0 $1 $2} %C:%N{S}$3-}";
+  action =  "{text %y*%n{qualified $0 $1 {S}} %N{S}$2-}";
+  notice =  "%7{text %r‼%n{qualified $0 $1 {S}} %C:%N%7{S}%G$2-}";
+
+  highlight =      "{message %b$0%n $1 $2 $3}";
+  public =         "{message $0 $1 $2 $3}";
+  public_action =  "{action $0 $1 $2}";
+  public_notice =  "{notice $0 $1 $2}";
+  private =        "{message $0 >$1 {s} $3}";
+  private_action = "{action $0 >$1 $3}";
+  private_notice = "{notice $0 >$1 $3}";
+
+  # Non-text
+  # --------
+  nontext = "%C$0$1-";
+
+                     # v- hardcoding {nontext}'s colour here
+  join = "{nontext %g→%C {qualified $0 $2 {S}} {hostmask $1}}";
+  part = "{nontext %r←%C {qualified $0 $2 {S}} {hostmask $1}}";
+  kick = "{nontext %r←%C {qualified $0 $2 {S}}{by $4} {reason $3}}";
+  quit = "{nontext %r←%C {qualified $0 $C {S}} {reason $3}}";
+  note = "{nontext %y$0%C $1 $2-}";
+  rest = "{nontext %C$0%C $1 $2-}";
+
+  # TODO: Use first character of $3 to replace = for {mode}
+  mode =   "{note = {qualified $0 $1 {S}} {callout / mode} $3}";
+  topic =  "{note = {qualified $0 $1 {S}} {callout / topic} $2}";
+  renick = "{note = {qualified %C$0%n $C {S}} > $1}";
+
+  # Extras
+  # ------
+  hostmask = "{hidden [$*]}";
+  reason =   "{hidden “$*”}";
+  by =       " {callout ⚡ $0}";
+
+  qualified = "{no_channel $*}";
+  use_channel = "$2{qualifier $1}%C¦%|%n$0";
+  no_channel = "$2%|%n$0";
+  qualifier = "%C$0%n";
+  hidden =    "%w$*%n";
+  callout =   "%k$0%C$1%n";
+
+  unknown = "%rUNKNOWN FORMAT:%n \[$0 $1-]";
+  debug =   "0[$0] 1[$1] 2[$2] 3[$3] 4[$4] 5[$5] 6[$6] 7[$7]";
+  S =       " "; # A horrible hack necessary due to how irssi parses templates
+
+  # irssi crap
+  # ----------
+  line_start = "";
+
+  # Leftovers
+  # =========
+  # Stuff from solarized-universal.theme that I haven't yet replaced/rewritten/disnecessitated.
+
   ##
   ## generic
   ##
@@ -72,40 +70,32 @@ abstracts = {
   # text to insert at the beginning of each non-message line
   # %G = brightgreen (Solarized: base01, i.e. darkest gray)
   # %| probably right-aligns
-  line_start = " %G-!- ";
+  #line_start = " %C= ";
 
   # timestamp styling, nothing by default
   # %Y = brightyellow (Solarized: base00, i.e. 2nd darkest gray)
-  timestamp = "%Y$*%n";
-
-  # any kind of text that needs hilighting, default is to bold
-  hilight = "%_$*%_";
+  timestamp = "%w$*%n";
 
   # any kind of error message, default is bright red
   # %r = red
   error = "%r$*%n";
 
   # channel name is printed
-  channel = "%_$*%_";
+  # ec: (apparently, only in join messages)
+  channel = "%y$*%n";
 
   # nick is printed
-  nick = "%_$*%_";
+  # ec: (apparently, only in mode-change blames)
+  nick = "%y$*%n";
 
-  # nick host is printed
-  # (that's the "email" address of a user)
-  nickhost = "<$*>";
+  # hostmask is printed
+  # ec: (disabled)
+  #nickhost = "<$*>";
+  nickhost = "";
 
   # server name is printed
-  server = "%_$*%_";
-
-  # some kind of comment is printed
-  comment = "($*)";
-
-  # reason for something is printed (part, quit, kick, ..)
-  reason = "{comment $*}";
-
-  # mode change is printed ([+o nick])
-  mode = "{comment $*}";
+  # ec: is this even used?
+  server = "%r$*%n";
 
   ##
   ## channel specific messages
@@ -200,9 +190,6 @@ abstracts = {
   # used internally by this theme
   action_core = "%_*%n $*";
 
-  # generic one that's used by most actions
-  action = "{action_core %_$*%n} ";
-
   # own action, both private/public
   ownaction = "{action_core %b$*%n} ";
 
@@ -232,7 +219,6 @@ abstracts = {
   # notices
   # TODO: To adapt for Solarized
   ownnotice = "[%b$0%G(%b$1-%G)]%n ";
-  notice = "%G-%M$*%G-%n ";
   pubnotice_channel = "%G:%m$*";
   pvtnotice_host = "%G(%m$*%G)";
   servernotice = "%g!$*%n ";
@@ -366,7 +352,74 @@ abstracts = {
 };
 
 formats = {
+  # So, all of the defaults are a clusterfrak. I'm going to re-define a bunch of them to simply use
+  # templates, and then give them content up above. I'm also "normalizing" the argument-words for
+  # groups of similar templates, and giving default values incase other themers want to base their
+  # work on this file.
+ 
+  # In addition, there are a few formats that I absolutely do not know the purpose of; I change them
+  # away from their defaults to shit bricks in an obvious way if they *do* get used, so I'll notice,
+  # personally, next time my irssi actually *uses* them for something. If you're copying this file
+  # and dev'ing your own themes, you might want to remove those {unknown} lines for the sake of your
+  # users.
   "fe-common/core" = {
-    daychange = "           %g-----%w-%W-%n Day changed to %%D %W-%w-%g-----%n";
+                # Nick Hostmask Channel Reason (Blame)
+    join =      "{join $0 $1 $2 N/A}";
+    part =      "{part $0 $1 $2 $3}";
+    kick =      "{kick $0 N/A $1 $3 $2}";
+    quit =      "{quit $0 $1 N/A $2}";
+    quit_once = "{quit $0 $1 N/A $2}"; # only applies with /set show_quit_once on
+ 
+                  # Nick Channel (Topic)
+    new_topic =   "{topic $0 $1 $2}";
+    topic_unset = "{topic $0 $1}";
+ 
+                        # Old New
+    your_nick_changed = "{renick $0 $1}";
+    nick_changed =      "{renick $0 $1}";
+
+                              # Nick Channel Flag Message
+    own_msg =                 "{public $0 $C $2 $1}";
+    own_msg_channel =         "{public $0 $1 $3 $2}";
+    pubmsg =                  "{public $0 $C $2 $1}";
+    pubmsg_channel =          "{public $0 $1 $3 $2}";
+    pubmsg_me =               "{highlight $0 $C $2 $1}";
+    pubmsg_me_channel =       "{highlight $0 $1 $3 $2}";
+    pubmsg_hilight =          "{highlight $0 $C $2 $1}";
+    pubmsg_hilight_channel =  "{highlight $0 $1 $3 $2}";
+ 
+                              # Nick Target Hostmask Message
+    msg_private =             "{unknown fe-common/core-msg_private $*}";
+    msg_private_query =       "{private $0 $0 $1 $2}";
+    own_msg_private =         "{unknown fe-common/core-own_msg_private $*}";
+    own_msg_private_query =   "{private $2 $0 N/A $1}";
+
+    # Some things we simply disable
+    talking_in = ""; # Allows ^X to operate silently
+  };
+  "fe-common/irc" = {
+                              # Nick Channel Hostmask Modes
+    chanmode_change =         "{mode $2 $0 $3 $1}";
+    server_chanmode_change =  "{mode $2 $0 N/A $1}";
+
+                            # Nick Channel Message
+    own_action =            "{public_action $0 $2 $1}";
+    own_action_target =     "{unknown fe-common/irc-own_action_target $*}";
+    action_public =         "{public_action $0 $C $1}";
+    action_public_channel = "{public_action $0 $2 $1}";
+                            # Nick Target Hostmask Message
+    action_private =        "{private_action $0 $0 $1 $2}";
+    action_private_query =  "{private_action $0 $0 $1 $2}";
+    # FIXME: irssi currently does not differentiate between own_action in public
+    #        and own_action in private. This makes actions in queries look off.
+
+                            # Nick Channel Message
+    own_notice =            "{public_notice $N $0 $1}";
+    notice_server =         "{unknown fe-common/irc-notice_server $*}";
+    notice_public =         "{public_notice $0 $1 $2}";
+                            # Nick Target Hostmask Message
+    notice_private =        "{private_notice $0 $0 $1 $2}";
+
+    own_ctcp =              "{unknown fe-common/irc-own_ctcp $*}";
   };
 };
