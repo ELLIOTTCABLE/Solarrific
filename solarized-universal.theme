@@ -5,12 +5,19 @@ info_eol = "false";
 #replaces = { "[]=" = "%_$*%_"; };
 
 abstracts = {
+  # Options
+  # -------
+
+  # Uncomment only one of these, based on whether or not you want a channel to appear in all
+  # messages (that is, single-channel-per-window, or multiple-channels-in-one-window, mode.)
+  show_channel = "{yes $0 $1}";
+
   # Text
   # ----
  #text =    "%N$0$1-";
   text =    "$0$1-";
   message = "{text {S}{qualified $0 $1 $2} %C:%N{S}$3-}";
-  action =  "{text %y*%n{qualified $0 $1 {S}} %N{S}$2-}";
+  action =  "{text %y~%n{qualified $0 $1 {S}} %N{S}$2-}";
   notice =  "%7{text %r‼%n{qualified $0 $1 {S}} %C:%N%7{S}%G$2-}";
 
   highlight =      "{message %b$0%n $1 $2 $3}";
@@ -26,17 +33,28 @@ abstracts = {
   nontext = "%C$0$1-";
 
                      # v- hardcoding {nontext}'s colour here
-  join = "{nontext %g→%C {qualified $0 $2 {S}} {hostmask $1}}";
-  part = "{nontext %r←%C {qualified $0 $2 {S}} {hostmask $1}}";
-  kick = "{nontext %r←%C {qualified $0 $2 {S}}{by $4} {reason $3}}";
-  quit = "{nontext %r←%C {qualified $0 $C {S}} {reason $3}}";
+  join = "{nontext %g›%C {qualified $0 $2 {S}} {hostmask $1}}";
+  part = "{nontext %r‹%C {qualified $0 $2 {S}} {hostmask $1}}";
+  kick = "{nontext %r‹%C {qualified $0 $2 {S}}{by $4} {reason $3}}";
+  quit = "{nontext %r«%C {qualified $0 $C {S}} {reason $3}}";
   note = "{nontext %y$0%C $1 $2-}";
-  rest = "{nontext %C$0%C $1 $2-}";
+  rest = "{nontext %C$0%C $1}";
 
   # TODO: Use first character of $3 to replace = for {mode}
-  mode =   "{note = {qualified $0 $1 {S}} {callout / mode} $3}";
-  topic =  "{note = {qualified $0 $1 {S}} {callout / topic} $2}";
-  renick = "{note = {qualified %C$0%n $C {S}} > $1}";
+  mode_set =   "{note - {qualified $0 $1 {S}} {callout / mode} $3}";
+  topic_set =  "{note - {qualified $0 $1 {S}} {callout / topic} $2}";
+  renick =     "{note - {qualified %C$0%n $C {S}} > $1}";
+
+  informational =   "{note ? {S}$0-}";
+  informational_q = "{note ? {S}{qualifier $0} $1-}}";
+  other =           "{note {S} {S}$0-}";
+
+  names_header = "";      # v- horrible hack to “eat” the first nick's comma
+  names_prefix = "{rest {S} {S}{qualifier $C │}}";
+  names_nick =   "$0 $1│";
+  names_footer = "{note ? {S}{qualifier $0 :{S}}$1 people (@$2, %%$3, +$4, $5)}";
+
+  paste_prompt = "%C(paste: %k$0%C, abort: %k$1%C)%n";
 
   # Extras
   # ------
@@ -44,20 +62,21 @@ abstracts = {
   reason =   "{hidden “$*”}";
   by =       " {callout ⚡ $0}";
 
-  qualified = "{no_channel $*}";
-  use_channel = "$2{qualifier $1}%C¦%|%n$0";
-  no_channel = "$2%|%n$0";
-  qualifier = "%C$0%n";
+  qualified = "$2{qualifier $1 {of}}%|%n$0";
+  qualifier = "{show_channel %C$0$1%n {NULL}}";
+  of =        "%C¦%n";
   hidden =    "%w$*%n";
   callout =   "%k$0%C$1%n";
 
+  # ### Utilities
   unknown = "%rUNKNOWN FORMAT:%n \[$0 $1-]";
   debug =   "0[$0] 1[$1] 2[$2] 3[$3] 4[$4] 5[$5] 6[$6] 7[$7]";
   S =       " "; # A horrible hack necessary due to how irssi parses templates
-
-  # irssi crap
-  # ----------
-  line_start = "";
+  NULL =    "";
+  wrap =    "$*"; # To retain whitespace
+  cat =     "$0$1$2$3$4$5$6$7$8$9"; # Since $* retains whitespace
+  yes =     "$0"; # Yes, church booleans in a themefile. Well, kinduh.
+  no =      "$1";
 
   # Leftovers
   # =========
@@ -237,15 +256,6 @@ abstracts = {
   netsplit = "%r$*%n";
   netjoin = "%g$*%n";
 
-  # /names list
-  names_prefix = "";
-  names_nick = "[%_$0%_$1-] ";
-  names_nick_op = "{names_nick $*}";
-  names_nick_halfop = "{names_nick $*}";
-  names_nick_voice = "{names_nick $*}";
-  names_users = "[%g$*%n]";
-  names_channel = "%c$*%n";
-
   # DCC
   dcc = "%g$*%n";
   dccfile = "%_$*%_";
@@ -371,9 +381,15 @@ formats = {
     quit_once = "{quit $0 $1 N/A $2}"; # only applies with /set show_quit_once on
  
                   # Nick Channel (Topic)
-    new_topic =   "{topic $0 $1 $2}";
-    topic_unset = "{topic $0 $1}";
- 
+    new_topic =   "{topic_set $0 $1 $2}";
+    topic_unset = "{topic_set $0 $1}";
+
+               # Channel (Topic)
+    topic =    "{topic $0 $1}";
+    no_topic = "{topic $0}";
+                 # Nick Hostmask Channel Timestamp
+    topic_info = "{topic_info $0 $2 $C $1}";
+
                         # Old New
     your_nick_changed = "{renick $0 $1}";
     nick_changed =      "{renick $0 $1}";
@@ -394,13 +410,40 @@ formats = {
     own_msg_private =         "{unknown fe-common/core-own_msg_private $*}";
     own_msg_private_query =   "{private $2 $0 N/A $1}";
 
-    # Some things we simply disable
+                        # Channel
+    names =             "{names_header $0}";
+    names_prefix =      "{names_prefix $0}"; # The default has a %#; I have no idea what that does.
+                        # Nick Tag
+    names_nick_op =     "{names_nick $1 @}";
+    names_nick_halfop = "{names_nick $1 %}";
+    names_nick_voice =  "{names_nick $1 +}";
+    names_nick =        "{names_nick $1 {S}}";
+                        # Channel Total Ops Halfops Voices Normals
+    endofnames =        "{names_footer $0 $1 $2 $3 $4 $5}";
+
+    # Disabled
+    line_start = "";
+    line_start_irssi = "";
     talking_in = ""; # Allows ^X to operate silently
+    talking_with = "";
+  };
+  "fe-text" = {
+    # Messages
+    paste_warning = "{informational $0 is a lot of lines. Do you want to paste them to $1?}";
+    paste_prompt =  "{paste_prompt ^K ^C}";
   };
   "fe-common/irc" = {
+    no_bans =         "";
+    banlist =         "";
+    banlist_long =    "";
+    ebanlist =        "";
+    ebanlist_long =   "";
+    no_invitelist =   "";
+    invitelist =      "";
+    invitelist_long = "";
                               # Nick Channel Hostmask Modes
-    chanmode_change =         "{mode $2 $0 $3 $1}";
-    server_chanmode_change =  "{mode $2 $0 N/A $1}";
+    chanmode_change =         "{mode_set $2 $0 $3 $1}";
+    server_chanmode_change =  "{mode_set $2 $0 N/A $1}";
 
                             # Nick Channel Message
     own_action =            "{public_action $0 $2 $1}";
@@ -421,5 +464,9 @@ formats = {
     notice_private =        "{private_notice $0 $0 $1 $2}";
 
     own_ctcp =              "{unknown fe-common/irc-own_ctcp $*}";
+
+    # Messages
+    channel_created = "{informational_q $0 created on $1}";
+    channel_synced =  "{informational_q $0 (join synced in $1 secs)}";
   };
 };
