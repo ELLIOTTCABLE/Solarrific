@@ -16,7 +16,7 @@ abstracts = {
   # ----
  #text =    "%N$0$1-";
   text =    "$0$1-";
-  message = "{text {S}{qualified $0 $1 $2} %C:%N{S}$3-}";
+  message = "{text {S}{qualified $0 $1 $2} %k:%N{S}$3-}";
   action =  "{text %y~%n{qualified $0 $1 {S}} %N{S}$2-}";
   notice =  "%7{text %r‼%n{qualified $0 $1 {S}} %C:%N%7{S}%G$2-}";
 
@@ -69,7 +69,7 @@ abstracts = {
   callout =   "%k$0%C$1%n";
 
   # ### Utilities
-  unknown = "%rUNKNOWN FORMAT:%n \[$0 $1-]";
+  unknown = "%rUNKNOWN FORMAT:%n [$0 $1-]";
   debug =   "0[$0] 1[$1] 2[$2] 3[$3] 4[$4] 5[$5] 6[$6] 7[$7]";
   S =       " "; # A horrible hack necessary due to how irssi parses templates
   NULL =    "";
@@ -93,7 +93,7 @@ abstracts = {
 
   # timestamp styling, nothing by default
   # %Y = brightyellow (Solarized: base00, i.e. 2nd darkest gray)
-  timestamp = "%w$*%n";
+  timestamp = "%C$*%n";
 
   # any kind of error message, default is bright red
   # %r = red
